@@ -1,0 +1,59 @@
+version: "3.5"
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8
+    ports:
+      - "3360:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    networks:
+      - backend
+  apache:
+    image: 'httpd:2.4.41-alpine'
+    container_name: apache
+    environment:
+      - APACHE_HOST=${APACHE_HOST}
+    build:
+      context: .
+      dockerfile: .docker/apache/Dockerfile
+    volumes: 
+      - ./etc/infrastructure/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:rw
+      - ./etc/infrastructure/apache/httpd-vhosts.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:rw
+      - ./etc/infrastructure/ssl:/usr/local/apache2/ssl:delegated
+      - .:/var/www/html:delegated
+    ports:
+    - 80:80
+    - 443:443
+    depends_on:
+      - php
+    networks:
+      - backend
+  php:
+    container_name: php
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "9091:9001"
+      - "9090:9000"
+    volumes:
+      - .:/var/www/html:delegated
+    depends_on:
+      - mysql
+    networks:
+      - backend
+  redis: 
+    container_name: redis
+    image: 'redis:5.0.7-alpine'
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+networks:
+    backend:
+      name: backend

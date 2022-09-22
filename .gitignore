@@ -1,0 +1,15 @@
+# Netbeans
+nbproject/
+/nbproject/
+/nbproject/private/
+/nbproject/private/private.properties
+
+# SSL Certs
+etc/infrastructure/ssl/
+
+# Application
+vendor/
+composer.lock
+
+# idea
+.idea/
